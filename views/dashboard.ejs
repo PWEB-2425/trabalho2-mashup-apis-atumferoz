@@ -1,0 +1,17 @@
+<h2>Welcome, <%= user.username %>!</h2>
+<form id="searchForm">
+  <input type="text" id="query" placeholder="Search term">
+  <button type="submit">Search</button>
+</form>
+<pre id="result"></pre>
+<a href="/logout">Logout</a>
+
+<script>
+document.getElementById('searchForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const q = document.getElementById('query').value;
+  const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+  document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+});
+</script>
