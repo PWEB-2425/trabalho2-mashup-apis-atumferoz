@@ -11,11 +11,17 @@ router.get('/register', (req, res) => {
 
 // POST register form
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-  await User.create({ username, password: hashed });
-  res.redirect('/login');
+  try {
+    const { username, password } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+    await User.create({ username, password: hashed });
+    res.redirect('/login');
+  } catch (err) {
+    console.error('Registration Error:', err.message);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
 
 // GET login page
 router.get('/login', (req, res) => {
