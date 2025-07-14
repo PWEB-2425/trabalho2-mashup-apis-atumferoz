@@ -11,17 +11,14 @@ router.get('/register', (req, res) => {
 
 // POST register form
 router.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const hashed = await bcrypt.hash(password, 10);
-    await User.create({ username, password: hashed });
-    res.redirect('/login');
-  } catch (err) {
-    console.error('Registration Error:', err.message);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  const { username, password } = req.body;
+  const existing = await User.findOne({ username });
+  if (existing) return res.send('Username already exists.');
 
+  const hashed = await bcrypt.hash(password, 10);
+  await User.create({ username, password: hashed });
+  res.redirect('/login');
+});
 
 // GET login page
 router.get('/login', (req, res) => {
@@ -41,12 +38,9 @@ router.get('/dashboard', isAuth, (req, res) => {
 
 // GET logout
 router.get('/logout', (req, res) => {
-  req.logout(() => {
-    res.redirect('/login');
-  });
+  req.logout(() => res.redirect('/login'));
 });
 
-// Middleware to protect routes
 function isAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect('/login');

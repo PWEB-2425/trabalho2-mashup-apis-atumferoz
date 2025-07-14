@@ -7,15 +7,12 @@ const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 
 dotenv.config();
-
 const app = express();
-
 require('./config/passport')(passport);
 
-// DB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+  .catch(err => console.error('MongoDB error:', err));
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -30,17 +27,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+app.set('view engine', 'ejs');
+
 app.use('/', authRoutes);
 app.use('/api', apiRoutes);
 
-// Set view engine
-app.set('view engine', 'ejs');
+// Default route
+app.get('/', (req, res) => res.redirect('/login'));
 
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
-
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <h2>Welcome, <%= user.username %>!</h2>
@@ -16,7 +17,7 @@
   <pre id="result"></pre>
 
   <h3>Your Search History:</h3>
-  <ul>
+  <ul id="historyList">
     <% if (user.history.length === 0) { %>
       <li>No search history yet.</li>
     <% } else { %>
@@ -30,13 +31,25 @@
 
   <script>
     const form = document.getElementById('searchForm');
+    const result = document.getElementById('result');
+    const historyList = document.getElementById('historyList');
+
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const q = document.getElementById('query').value;
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
-      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-      window.location.reload(); // refresh to update history
+
+      result.textContent = JSON.stringify(data, null, 2);
+
+      if (data.history) {
+        historyList.innerHTML = '';
+        data.history.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          historyList.appendChild(li);
+        });
+      }
     });
   </script>
 </body>

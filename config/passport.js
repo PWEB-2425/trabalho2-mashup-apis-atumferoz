@@ -8,9 +8,13 @@ module.exports = (passport) => {
     if (!user) return done(null, false, { message: 'User not found' });
 
     const isValid = await bcrypt.compare(password, user.password);
-    return done(null, isValid ? user : false);
+    if (!isValid) return done(null, false, { message: 'Incorrect password' });
+
+    return done(null, user);
   }));
 
   passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser((id, done) => User.findById(id).then(user => done(null, user)));
+  passport.deserializeUser((id, done) => {
+    User.findById(id).then(user => done(null, user)).catch(err => done(err));
+  });
 };
