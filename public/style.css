@@ -3,6 +3,8 @@ body {
   padding: 2em;
   max-width: 600px;
   margin: auto;
+  background-color: #f7faff;
+  color: #333;
 }
 
 input {
@@ -10,8 +12,46 @@ input {
   margin-bottom: 1em;
   padding: 0.5em;
   width: 100%;
+  font-size: 1em;
 }
 
 button {
   padding: 0.5em 1em;
+  font-size: 1em;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+h2, h3 {
+  margin-top: 1em;
+}
+
+.card {
+  background: #f0f8ff;
+  border: 1px solid #dbe9f4;
+  border-radius: 8px;
+  padding: 1em;
+  margin-top: 1em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.card p {
+  margin: 0.5em 0;
+}
+
+.weather-icon {
+  vertical-align: middle;
+  margin-right: 10px;
+  width: 40px;
 }

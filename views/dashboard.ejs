@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h2>Welcome, <%= user.username %>!</h2>
+  <h2>Welcome, <%= user.username %>! 👋</h2>
 
   <form id="searchForm">
     <input type="text" id="query" placeholder="Search city or term..." required>
@@ -14,7 +14,7 @@
   </form>
 
   <h3>Results:</h3>
-  <pre id="result"></pre>
+  <div id="result" class="card"></div>
 
   <h3>Your Search History:</h3>
   <ul id="historyList">
@@ -37,18 +37,45 @@
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const q = document.getElementById('query').value;
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
+      result.innerHTML = "<p>Loading...</p>";
 
-      result.textContent = JSON.stringify(data, null, 2);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
 
-      if (data.history) {
-        historyList.innerHTML = '';
-        data.history.forEach(item => {
-          const li = document.createElement('li');
-          li.textContent = item;
-          historyList.appendChild(li);
-        });
+        const weather = data.weather;
+        const wiki = data.wiki;
+
+        result.innerHTML = `
+          <div class="card">
+            <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
+            <p>
+              <img class="weather-icon" src="http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png" alt="icon">
+              <strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}
+            </p>
+            <p>🌡️ Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
+            <p>💧 Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
+            <p>💨 Wind: ${weather.wind.speed} m/s, ${weather.wind.deg}°</p>
+          </div>
+
+          <div class="card">
+            <h3>📘 Wikipedia Summary: ${wiki.title}</h3>
+            <p>${wiki.extract}</p>
+            <p><a href="${wiki.content_urls.desktop.page}" target="_blank">Read more</a></p>
+          </div>
+        `;
+
+        if (data.history) {
+          historyList.innerHTML = '';
+          data.history.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            historyList.appendChild(li);
+          });
+        }
+
+      } catch (err) {
+        result.innerHTML = `<p style="color:red;">⚠️ Error fetching data: ${err.message}</p>`;
       }
     });
   </script>
