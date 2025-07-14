@@ -5,29 +5,28 @@
   <title>Dashboard</title>
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body class="dashboard">
   <div class="top-bar">
-    <h2>Welcome, <%= user.username %>! 👋</h2>
+    <h2>Welcome, <%= user.username %>!</h2>
     <button id="darkModeToggle">🌙</button>
   </div>
 
   <form id="searchForm">
-    <input type="text" id="query" placeholder="Search city or term..." required>
+    <input id="query" placeholder="Search city..." required>
     <button type="submit">Search</button>
   </form>
 
-  <h3>Results:</h3>
-  <div id="result" class="card fade"></div>
+  <div id="result" class="card fade">
+    <p>Search a city to see info here.</p>
+  </div>
 
   <h3>Your Search History:</h3>
   <ul id="historyList">
     <% if (user.history.length === 0) { %>
-      <li>No search history yet.</li>
-    <% } else { %>
-      <% user.history.slice(-5).reverse().forEach(item => { %>
-        <li><%= item %></li>
-      <% }) %>
-    <% } %>
+      <li>No history yet.</li>
+    <% } else { user.history.slice(-5).reverse().forEach(h => { %>
+      <li><%= h %></li>
+    <% }) } %>
   </ul>
 
   <a href="/logout">Logout</a>
@@ -40,53 +39,53 @@
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      const q = document.getElementById('query').value;
-      result.innerHTML = "<p>Loading...</p>";
+      result.innerHTML = '<p>Loading...</p>';
       result.classList.remove('visible');
+
+      const q = document.getElementById('query').value;
 
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
 
-        const weather = data.weather;
-        const wiki = data.wiki;
+        const { weather, wiki, movies, tracks, history } = data;
+        const cityImg = `https://source.unsplash.com/random/800x400/?${encodeURIComponent(weather.name)},city`;
 
         result.innerHTML = `
+          <img class="location-img" src="${cityImg}" alt="Image of ${weather.name}">
           <div class="card">
             <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
-            <p>
-              <img class="weather-icon" src="http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png" alt="icon">
-              <strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}
-            </p>
-            <p>🌡️ Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
-            <p>💧 Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
-            <p>💨 Wind: ${weather.wind.speed} m/s, ${weather.wind.deg}°</p>
+            <p><strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}</p>
+            <p>Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
+            <p>Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
+            <p>Wind: ${weather.wind.speed} m/s</p>
           </div>
 
           <div class="card">
-            <h3>📘 Wikipedia Summary: ${wiki.title}</h3>
+            <h3>📘 Wiki: ${wiki.title}</h3>
             <p>${wiki.extract}</p>
             <p><a href="${wiki.content_urls.desktop.page}" target="_blank">Read more</a></p>
           </div>
+
+          ${movies.length ? `<div class="card"><h3>🎬 Top Movies</h3><ul>${movies.map(m => `<li>${m.title} (${m.release_date?.substring(0, 4) || ''})</li>`).join('')}</ul></div>` : ''}
+
+          ${tracks.length ? `<div class="card"><h3>🎵 Popular Tracks</h3><ul>${tracks.map(t => `<li><a href="${t.url}" target="_blank">${t.name}</a> – ${t.artists}</li>`).join('')}</ul></div>` : ''}
         `;
 
         setTimeout(() => result.classList.add('visible'), 100);
 
-        if (data.history) {
-          historyList.innerHTML = '';
-          data.history.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = item;
-            historyList.appendChild(li);
-          });
-        }
+        historyList.innerHTML = '';
+        history.forEach(h => {
+          const li = document.createElement('li');
+          li.textContent = h;
+          historyList.appendChild(li);
+        });
 
       } catch (err) {
-        result.innerHTML = `<p style="color:red;">⚠️ Error fetching data: ${err.message}</p>`;
+        result.innerHTML = `<p style="color:red;">⚠️ Error: ${err.message}</p>`;
       }
     });
 
-    // 🌙 Dark Mode Toggle
     toggle.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       toggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';

@@ -35,5 +35,12 @@ app.use('/api', apiRoutes);
 // Default route
 app.get('/', (req, res) => res.redirect('/login'));
 
+const fetchSpotifyToken = require('./spotify-token');
+fetchSpotifyToken().then(token => {
+  process.env.SPOTIFY_TOKEN = token;
+  console.log('Spotify token loaded');
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
