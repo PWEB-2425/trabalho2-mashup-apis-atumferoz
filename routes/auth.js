@@ -33,7 +33,14 @@ router.get('/dashboard', isAuth, (req, res) => {
   res.render('dashboard', { user: req.user });
 });
 
-// Middleware to check auth
+// GET logout
+router.get('/logout', (req, res) => {
+  req.logout(() => {
+    res.redirect('/login');
+  });
+});
+
+// Middleware to protect routes
 function isAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect('/login');

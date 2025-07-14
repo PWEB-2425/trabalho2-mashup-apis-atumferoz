@@ -3,6 +3,13 @@ const router = express.Router();
 const axios = require('axios');
 const User = require('../models/user');
 
+// Middleware to ensure user is authenticated
+function isAuth(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.status(401).json({ error: 'Unauthorized' });
+}
+
+// GET /api/search (authenticated)
 router.get('/search', isAuth, async (req, res) => {
   const { q } = req.query;
   const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${q}&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
@@ -26,28 +33,4 @@ router.get('/search', isAuth, async (req, res) => {
   }
 });
 
-function isAuth(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).json({ error: 'Unauthorized' });
-}
-
 module.exports = router;
-
-router.get('/search', async (req, res) => {
-  const { q } = req.query;
-  const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${q}&appid=${process.env.OPENWEATHER_API_KEY}`;
-  const wikiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${q}`;
-
-  const [weather, wiki] = await Promise.all([
-    axios.get(weatherURL),
-    axios.get(wikiURL)
-  ]);
-
-  // Save search in user history
-  await User.findByIdAndUpdate(req.user.id, { $push: { history: q } });
-
-  res.json({
-    weather: weather.data,
-    wiki: wiki.data
-  });
-});
