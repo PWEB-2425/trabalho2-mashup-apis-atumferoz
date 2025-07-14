@@ -37,6 +37,10 @@ app.use('/api', apiRoutes);
 // Set view engine
 app.set('view engine', 'ejs');
 
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
