@@ -12,7 +12,19 @@
     <button type="submit">Search</button>
   </form>
 
+  <h3>Results:</h3>
   <pre id="result"></pre>
+
+  <h3>Your Search History:</h3>
+  <ul>
+    <% if (user.history.length === 0) { %>
+      <li>No search history yet.</li>
+    <% } else { %>
+      <% user.history.slice(-5).reverse().forEach(item => { %>
+        <li><%= item %></li>
+      <% }) %>
+    <% } %>
+  </ul>
 
   <a href="/logout">Logout</a>
 
@@ -24,6 +36,7 @@
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
       document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+      window.location.reload(); // refresh to update history
     });
   </script>
 </body>
