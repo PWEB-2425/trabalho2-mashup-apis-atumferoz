@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <header class="main-header">
+<header class="main-header">
   <h1 class="brand">Curious Travel</h1>
   <nav>
+    <button id="darkModeToggle">🌙</button>
     <a href="/">Home</a>
     <a href="/logout" class="logout">Logout</a>
   </nav>
@@ -15,6 +16,8 @@
   <meta charset="UTF-8">
   <title>Dashboard</title>
   <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+
   <script>
     // Persist dark mode before render
     if (localStorage.getItem('theme') === 'dark') {
