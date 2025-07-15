@@ -15,7 +15,6 @@ router.get('/search', isAuth, async (req, res) => {
   const wikiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`;
 
   try {
-    // FETCH weather and wiki
     const [weatherRes, wikiRes] = await Promise.all([
       axios.get(weatherURL),
       axios.get(wikiURL)
@@ -25,10 +24,10 @@ router.get('/search', isAuth, async (req, res) => {
     const wiki = wikiRes.data;
     const countryCode = weather.sys.country;
 
-    // FETCH Unsplash image
+    // 🌄 Unsplash city image
     let image = '';
     try {
-      const unsplashRes = await axios.get(`https://api.unsplash.com/photos/random`, {
+      const unsplashRes = await axios.get('https://api.unsplash.com/photos/random', {
         params: {
           query: `${weather.name} city`,
           orientation: 'landscape',
@@ -36,55 +35,56 @@ router.get('/search', isAuth, async (req, res) => {
         }
       });
       image = unsplashRes.data.urls.regular;
-    } catch (unsplashErr) {
-      console.warn('Unsplash image failed:', unsplashErr.message);
+    } catch (err) {
+      console.warn('Unsplash failed:', err.message);
     }
 
-    // FETCH TMDB movies
+    // 🎬 TMDB movies by release region
     let movies = [];
     try {
-      const movieRes = await axios.get('https://api.themoviedb.org/3/movie/popular', {
+      const movieRes = await axios.get('https://api.themoviedb.org/3/discover/movie', {
         params: {
           api_key: process.env.TMDB_API_KEY,
-          region: countryCode
+          sort_by: 'popularity.desc',
+          with_release_type: 3,
+          'release_date.lte': new Date().toISOString().split('T')[0],
+          with_release_region: countryCode
         }
       });
       movies = movieRes.data.results.slice(0, 5);
-    } catch (tmdbErr) {
-      console.warn('TMDB fetch failed:', tmdbErr.message);
+    } catch (err) {
+      console.warn('TMDB failed:', err.message);
     }
 
-    // FETCH Spotify music
+    // 🎵 Spotify: Search for "Top 50 - {countryCode}" playlist dynamically
     let tracks = [];
     try {
-      const artistRes = await axios.get('https://api.spotify.com/v1/search', {
+      const playlistSearch = await axios.get('https://api.spotify.com/v1/search', {
         headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
         params: {
-          q: countryCode,
-          type: 'artist',
-          limit: 1,
-          market: countryCode
+          q: `Top 50 - ${countryCode}`,
+          type: 'playlist',
+          limit: 1
         }
       });
 
-      const artist = artistRes.data.artists.items[0];
-      if (artist) {
-        const trackRes = await axios.get(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks`, {
-          headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
-          params: { market: countryCode }
+      const playlist = playlistSearch.data.playlists.items[0];
+      if (playlist) {
+        const playlistTracks = await axios.get(`https://api.spotify.com/v1/playlists/${playlist.id}`, {
+          headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` }
         });
 
-        tracks = trackRes.data.tracks.slice(0, 5).map(t => ({
-          name: t.name,
-          artists: t.artists.map(a => a.name).join(', '),
-          url: t.external_urls.spotify
+        tracks = playlistTracks.data.tracks.items.slice(0, 5).map(t => ({
+          name: t.track.name,
+          artists: t.track.artists.map(a => a.name).join(', '),
+          url: t.track.external_urls.spotify
         }));
       }
-    } catch (spotifyErr) {
-      console.warn('Spotify fetch failed:', spotifyErr.message);
+    } catch (err) {
+      console.warn('Spotify playlist fetch failed:', err.message);
     }
 
-    // Update user history
+    // Save search to user history
     await User.findByIdAndUpdate(req.user._id, { $push: { history: q } });
 
     res.json({
@@ -97,8 +97,8 @@ router.get('/search', isAuth, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Main API Error:', err.message);
-    res.status(500).json({ error: 'Something went wrong', details: err.message });
+    console.error('Search route failed:', err.message);
+    res.status(500).json({ error: 'API error', details: err.message });
   }
 });
 
