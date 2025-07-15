@@ -11,8 +11,8 @@
 body {
   font-family: 'Segoe UI', sans-serif;
   padding: 2em;
-  padding-top: 80px;
-  padding-bottom: 60px;
+  padding-top: 60px;
+  padding-bottom: 50px;
   max-width: 700px;
   margin: auto;
   background-color: var(--bg);
@@ -177,19 +177,36 @@ a[href="/logout"]:hover {
 }
 
 
-.main-header {
+.main-header,
+.main-footer {
+  background-color: #0056b3; /* 💙 Sampled from your image */
+  color: white;
+  backdrop-filter: blur(6px);
   position: fixed;
-  top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1em 2em;
   z-index: 1000;
 }
+
+/* Adjust height and padding */
+.main-header {
+  top: 0;
+  height: 40px;
+  padding: 0 1em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-footer {
+  bottom: 0;
+  height: 30px;
+  padding: 0.3em;
+  text-align: center;
+  font-size: 0.8em;
+}
+
+
 
 .main-header h1 {
   font-size: 1.8em;
@@ -209,20 +226,6 @@ a[href="/logout"]:hover {
 }
 
 
-.main-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(6px);
-  text-align: center;
-  padding: 1em;
-  font-size: 0.9em;
-  z-index: 1000;
-}
-
-
 nav a.logout {
   color: #ff4d4d;
   font-weight: bold;
@@ -231,3 +234,13 @@ nav a.logout {
 nav a.logout:hover {
   text-decoration: underline;
 }
+
+.brand {
+  flex: 1;
+  text-align: center;
+  font-size: 1.6em;
+  font-weight: bold;
+  margin: 0;
+}
+
+
