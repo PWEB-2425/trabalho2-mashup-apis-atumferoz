@@ -11,7 +11,7 @@
     }
   </script>
 </head>
-<body class="dashboard" style="background-image: url('https://media.sketchfab.com/models/f996c2489cfc435eb79399ad1890f8e0/thumbnails/27bbc96613894664a78995dfe460ef03/8b0b0966602d4bafb967c3a11c19ab3f.jpeg'); background-size: cover; background-position: center;">
+<body class="dashboard" style="background-image: url('https://www.mapsinternational.co.uk/pub/media/catalog/product/x/s/a/satellite-map-of-the-world_wm00875.jpg'); background-size: cover; background-position: center;">
 
 
   <div class="top-bar">
@@ -29,13 +29,12 @@
   </div>
 
   <h3>Your Search History:</h3>
-  <ul id="historyList">
-    <% if (user.history.length === 0) { %>
-      <li>No history yet.</li>
-    <% } else { user.history.slice(-5).reverse().forEach(h => { %>
-      <li><%= h %></li>
-    <% }) } %>
-  </ul>
+<ul id="historyList">
+  <% user.history.slice(-5).reverse().forEach(h => { %>
+    <li><a href="#" class="history-link"><%= h %></a></li>
+  <% }) %>
+</ul>
+
 
   <a href="/logout">Logout</a>
 
@@ -104,6 +103,16 @@ result.innerHTML = `
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
       toggle.textContent = isDark ? '☀️' : '🌙';
     });
+
+    document.addEventListener('click', async e => {
+  if (e.target.classList.contains('history-link')) {
+    e.preventDefault();
+    const q = e.target.textContent;
+    document.getElementById('query').value = q;
+    form.dispatchEvent(new Event('submit'));
+  }
+});
+
   </script>
 </body>
 </html>
