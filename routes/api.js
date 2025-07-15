@@ -10,10 +10,12 @@ function isAuth(req, res, next) {
 
 router.get('/search', isAuth, async (req, res) => {
   const { q } = req.query;
+
   const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${q}&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
   const wikiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`;
 
   try {
+    // FETCH weather and wiki
     const [weatherRes, wikiRes] = await Promise.all([
       axios.get(weatherURL),
       axios.get(wikiURL)
@@ -23,19 +25,39 @@ router.get('/search', isAuth, async (req, res) => {
     const wiki = wikiRes.data;
     const countryCode = weather.sys.country;
 
-    // TMDB Movies
-    const moviesRes = await axios.get('https://api.themoviedb.org/3/movie/popular', {
-      params: {
-        api_key: process.env.TMDB_API_KEY,
-        region: countryCode
-      }
-    });
-    const movies = moviesRes.data.results.slice(0, 5);
+    // FETCH Unsplash image
+    let image = '';
+    try {
+      const unsplashRes = await axios.get(`https://api.unsplash.com/photos/random`, {
+        params: {
+          query: `${weather.name} city`,
+          orientation: 'landscape',
+          client_id: process.env.UNSPLASH_ACCESS_KEY
+        }
+      });
+      image = unsplashRes.data.urls.regular;
+    } catch (unsplashErr) {
+      console.warn('Unsplash image failed:', unsplashErr.message);
+    }
 
-    // Spotify Top Tracks (use Client Credentials token in SPOTIFY_TOKEN env)
+    // FETCH TMDB movies
+    let movies = [];
+    try {
+      const movieRes = await axios.get('https://api.themoviedb.org/3/movie/popular', {
+        params: {
+          api_key: process.env.TMDB_API_KEY,
+          region: countryCode
+        }
+      });
+      movies = movieRes.data.results.slice(0, 5);
+    } catch (tmdbErr) {
+      console.warn('TMDB fetch failed:', tmdbErr.message);
+    }
+
+    // FETCH Spotify music
     let tracks = [];
     try {
-      const artistSearch = await axios.get('https://api.spotify.com/v1/search', {
+      const artistRes = await axios.get('https://api.spotify.com/v1/search', {
         headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
         params: {
           q: countryCode,
@@ -45,7 +67,7 @@ router.get('/search', isAuth, async (req, res) => {
         }
       });
 
-      const artist = artistSearch.data.artists.items[0];
+      const artist = artistRes.data.artists.items[0];
       if (artist) {
         const trackRes = await axios.get(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks`, {
           headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
@@ -58,10 +80,11 @@ router.get('/search', isAuth, async (req, res) => {
           url: t.external_urls.spotify
         }));
       }
-    } catch (spotifyError) {
-      console.warn('Spotify failed:', spotifyError.message);
+    } catch (spotifyErr) {
+      console.warn('Spotify fetch failed:', spotifyErr.message);
     }
 
+    // Update user history
     await User.findByIdAndUpdate(req.user._id, { $push: { history: q } });
 
     res.json({
@@ -69,34 +92,14 @@ router.get('/search', isAuth, async (req, res) => {
       wiki,
       movies,
       tracks,
+      image,
       history: req.user.history.concat(q).slice(-5).reverse()
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'API error', details: err.message });
+    console.error('Main API Error:', err.message);
+    res.status(500).json({ error: 'Something went wrong', details: err.message });
   }
 });
-
-// After getting weather & wiki data
-const unsplashRes = await axios.get(`https://api.unsplash.com/photos/random`, {
-  params: {
-    query: weather.name + ' city',
-    orientation: 'landscape',
-    client_id: process.env.UNSPLASH_ACCESS_KEY
-  }
-});
-
-const image = unsplashRes.data.urls.regular;
-
-// Add to response
-res.json({
-  weather,
-  wiki,
-  movies,
-  tracks,
-  history: req.user.history.concat(q).slice(-5).reverse(),
-  image
-});
-
 
 module.exports = router;
