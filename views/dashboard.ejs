@@ -59,9 +59,10 @@
         const { weather, wiki, movies, tracks, images, history } = data;
 
 result.innerHTML = `
-  <div class="image-gallery">
-    ${images.map(src => `<img class="location-img" src="${src}" alt="City image">`).join('')}
-  </div>
+  <div class="image-carousel">
+  ${images.map(src => `<img class="carousel-img" src="${src}" alt="City image">`).join('')}
+</div>
+
 
   <div class="card">
     <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
