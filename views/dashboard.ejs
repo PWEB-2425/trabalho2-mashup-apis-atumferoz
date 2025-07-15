@@ -3,13 +3,12 @@
 
 <header class="main-header">
   <h1 class="brand">Curious Travel</h1>
-  <nav>
-    <button id="darkModeToggle">🌙</button>
+  <nav class="nav-links">
     <a href="/">Home</a>
     <a href="/logout" class="logout">Logout</a>
+    <button id="darkModeToggle">🌙</button>
   </nav>
 </header>
-
 
 
 <head>
@@ -30,7 +29,6 @@
 
   <div class="top-bar">
     <h2>Welcome, <%= user.username %>!</h2>
-    <button id="darkModeToggle">🌙</button>
   </div>
 
   <form id="searchForm">
