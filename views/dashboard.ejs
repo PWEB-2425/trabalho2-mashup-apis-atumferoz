@@ -75,9 +75,9 @@ result.innerHTML = `
   <div class="card">
     <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
     <p><strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}</p>
-    <p>Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
-    <p>Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
-    <p>Wind: ${weather.wind.speed} m/s</p>
+    <p><strong>Temp:</strong> ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
+    <p><strong>Humidity:</strong> ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
+    <p><strong>Wind:</strong> ${weather.wind.speed} m/s</p>
   </div>
 
   <div class="card">
