@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <title>Dashboard</title>
   <link rel="stylesheet" href="/style.css">
+  <script>
+    // Persist dark mode before render
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
 <body class="dashboard">
   <div class="top-bar">
@@ -48,11 +54,10 @@
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
 
-        const { weather, wiki, movies, tracks, history } = data;
-        const cityImg = `https://source.unsplash.com/random/800x400/?${encodeURIComponent(weather.name)},city`;
+        const { weather, wiki, movies, tracks, image, history } = data;
 
         result.innerHTML = `
-          <img class="location-img" src="${cityImg}" alt="Image of ${weather.name}">
+          <img class="location-img" src="${image}" alt="Image of ${weather.name}">
           <div class="card">
             <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
             <p><strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}</p>
@@ -87,8 +92,10 @@
     });
 
     toggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      toggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      toggle.textContent = isDark ? '☀️' : '🌙';
     });
   </script>
 </body>

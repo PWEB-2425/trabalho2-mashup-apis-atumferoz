@@ -1,56 +1,42 @@
+:root {
+  --bg: #f7faff;
+  --text: #333;
+}
+
+.dark {
+  --bg: #121212;
+  --text: #eee;
+}
+
 body {
   font-family: 'Segoe UI', sans-serif;
   padding: 2em;
   max-width: 700px;
   margin: auto;
-  background-color: #f7faff;
-  color: #333;
+  background-color: var(--bg);
+  color: var(--text);
   transition: background-color 0.4s, color 0.4s;
 }
 
-body.dark {
-  background-color: #121212;
-  color: #eee;
-}
-
-body.dark input,
-body.dark button,
-body.dark .card {
-  background-color: #1e1e1e;
-  color: #eee;
-  border-color: #444;
-}
-
-body.login, body.register, body.dashboard {
-  background: url("https://source.unsplash.com/random/1600x900/?abstract") center/cover no-repeat;
-}
-
-input {
-  display: block;
-  margin-bottom: 1em;
-  padding: 0.6em;
+input, button {
   width: 100%;
+  padding: 0.6em;
   font-size: 1em;
-  border: 1px solid #ccc;
+  margin-bottom: 1em;
   border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 button {
-  padding: 0.6em 1.2em;
-  font-size: 1em;
   background-color: #007BFF;
   color: white;
   border: none;
-  cursor: pointer;
-  border-radius: 5px;
 }
 
 button:hover {
   background-color: #0056b3;
-}
-
-h2, h3 {
-  margin-top: 1em;
 }
 
 .top-bar {
@@ -68,13 +54,9 @@ h2, h3 {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.card h3 {
-  margin-top: 0;
-}
-
-.card p,
-.card li {
-  margin: 0.5em 0;
+.dark .card {
+  background-color: #1e1e1e;
+  border-color: #444;
 }
 
 .location-img {
@@ -87,6 +69,7 @@ h2, h3 {
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
 }
+
 .fade.visible {
   opacity: 1;
 }

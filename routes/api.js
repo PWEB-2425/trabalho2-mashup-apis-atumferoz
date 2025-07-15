@@ -77,4 +77,26 @@ router.get('/search', isAuth, async (req, res) => {
   }
 });
 
+// After getting weather & wiki data
+const unsplashRes = await axios.get(`https://api.unsplash.com/photos/random`, {
+  params: {
+    query: weather.name + ' city',
+    orientation: 'landscape',
+    client_id: process.env.UNSPLASH_ACCESS_KEY
+  }
+});
+
+const image = unsplashRes.data.urls.regular;
+
+// Add to response
+res.json({
+  weather,
+  wiki,
+  movies,
+  tracks,
+  history: req.user.history.concat(q).slice(-5).reverse(),
+  image
+});
+
+
 module.exports = router;
