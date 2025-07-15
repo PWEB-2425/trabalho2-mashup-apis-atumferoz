@@ -12,40 +12,43 @@ router.get('/search', isAuth, async (req, res) => {
   const { q } = req.query;
 
   const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${q}&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
-  const wikiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`;
 
   try {
-    // Fetch weather and wiki
-    const [weatherRes, wikiRes] = await Promise.all([
-      axios.get(weatherURL),
-      axios.get(wikiURL)
-    ]);
-
+    // 🌤️ Fetch weather data
+    const weatherRes = await axios.get(weatherURL);
     const weather = weatherRes.data;
-    const wiki = wikiRes.data;
-    const countryCode = weather.sys.country;
 
-    // ✅ Convert ISO code to full country name
+    const city = weather.name;
+    const countryCode = weather.sys.country;
     const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode);
 
-    // 🌄 Unsplash city images
-let images = [];
-try {
-  const unsplashRes = await axios.get('https://api.unsplash.com/search/photos', {
-    params: {
-      query: `${weather.name} city`,
-      orientation: 'landscape',
-      per_page: 5,
-      client_id: process.env.UNSPLASH_ACCESS_KEY
+    // 📘 Try wiki for city, fallback to country
+    let wiki;
+    try {
+      const cityWikiRes = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(city)}`);
+      wiki = cityWikiRes.data;
+    } catch {
+      const countryWikiRes = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(countryName)}`);
+      wiki = countryWikiRes.data;
     }
-  });
-  images = unsplashRes.data.results.map(img => img.urls.regular);
-} catch (err) {
-  console.warn('Unsplash failed:', err.message);
-}
 
+    // 🌄 Unsplash city images
+    let images = [];
+    try {
+      const unsplashRes = await axios.get('https://api.unsplash.com/search/photos', {
+        params: {
+          query: `${city} city`,
+          orientation: 'landscape',
+          per_page: 5,
+          client_id: process.env.UNSPLASH_ACCESS_KEY
+        }
+      });
+      images = unsplashRes.data.results.map(img => img.urls.regular);
+    } catch (err) {
+      console.warn('Unsplash failed:', err.message);
+    }
 
-    // 🎬 TMDB movies by release region
+    // 🎬 TMDB movies by country
     let movies = [];
     try {
       const movieRes = await axios.get('https://api.themoviedb.org/3/discover/movie', {
@@ -62,7 +65,7 @@ try {
       console.warn('TMDB failed:', err.message);
     }
 
-    // 🎵 Spotify Top 50 by country name (with fallback to Global)
+    // 🎵 Spotify Top 50 by country (fallback to Global)
     let tracks = [];
     try {
       const playlistSearch = await axios.get('https://api.spotify.com/v1/search', {
@@ -77,7 +80,6 @@ try {
       let playlist = playlistSearch.data.playlists.items[0];
 
       if (!playlist) {
-        // Fallback to Global
         const fallback = await axios.get('https://api.spotify.com/v1/search', {
           headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
           params: {
@@ -104,23 +106,23 @@ try {
       console.warn('Spotify playlist fetch failed:', err.message);
     }
 
-    // Save user search history
+    // 💾 Save query to history
     await User.findByIdAndUpdate(req.user._id, { $push: { history: q } });
-    
-res.json({
-  weather,
-  wiki,
-  movies,
-  tracks,
-  images,
-  history: req.user.history.concat(q).slice(-5).reverse()
-});
 
+    res.json({
+      weather,
+      wiki,
+      movies,
+      tracks,
+      images,
+      history: req.user.history.concat(q).slice(-5).reverse()
+    });
 
   } catch (err) {
     console.error('Search route failed:', err.message);
     res.status(500).json({ error: 'API error', details: err.message });
   }
 });
+
 
 module.exports = router;
