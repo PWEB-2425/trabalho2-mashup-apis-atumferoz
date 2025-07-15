@@ -11,7 +11,9 @@
     }
   </script>
 </head>
-<body class="dashboard">
+<body class="dashboard" style="background-image: url('https://media.sketchfab.com/models/f996c2489cfc435eb79399ad1890f8e0/thumbnails/27bbc96613894664a78995dfe460ef03/8b0b0966602d4bafb967c3a11c19ab3f.jpeg'); background-size: cover; background-position: center;">
+
+
   <div class="top-bar">
     <h2>Welcome, <%= user.username %>!</h2>
     <button id="darkModeToggle">🌙</button>
@@ -54,28 +56,32 @@
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
 
-        const { weather, wiki, movies, tracks, image, history } = data;
+        const { weather, wiki, movies, tracks, images, history } = data;
 
-        result.innerHTML = `
-          <img class="location-img" src="${image}" alt="Image of ${weather.name}">
-          <div class="card">
-            <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
-            <p><strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}</p>
-            <p>Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
-            <p>Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
-            <p>Wind: ${weather.wind.speed} m/s</p>
-          </div>
+result.innerHTML = `
+  <div class="image-gallery">
+    ${images.map(src => `<img class="location-img" src="${src}" alt="City image">`).join('')}
+  </div>
 
-          <div class="card">
-            <h3>📘 Wiki: ${wiki.title}</h3>
-            <p>${wiki.extract}</p>
-            <p><a href="${wiki.content_urls.desktop.page}" target="_blank">Read more</a></p>
-          </div>
+  <div class="card">
+    <h3>🌤️ Weather in ${weather.name}, ${weather.sys.country}</h3>
+    <p><strong>${weather.weather[0].main}</strong>: ${weather.weather[0].description}</p>
+    <p>Temp: ${weather.main.temp}°C (Feels like: ${weather.main.feels_like}°C)</p>
+    <p>Humidity: ${weather.main.humidity}% | Pressure: ${weather.main.pressure} hPa</p>
+    <p>Wind: ${weather.wind.speed} m/s</p>
+  </div>
 
-          ${movies.length ? `<div class="card"><h3>🎬 Top Movies</h3><ul>${movies.map(m => `<li>${m.title} (${m.release_date?.substring(0, 4) || ''})</li>`).join('')}</ul></div>` : ''}
+  <div class="card">
+    <h3>📘 Wiki: ${wiki.title}</h3>
+    <p>${wiki.extract}</p>
+    <p><a href="${wiki.content_urls.desktop.page}" target="_blank">Read more</a></p>
+  </div>
 
-          ${tracks.length ? `<div class="card"><h3>🎵 Popular Tracks</h3><ul>${tracks.map(t => `<li><a href="${t.url}" target="_blank">${t.name}</a> – ${t.artists}</li>`).join('')}</ul></div>` : ''}
-        `;
+  ${movies.length ? `<div class="card"><h3>🎬 Top Movies</h3><ul>${movies.map(m => `<li>${m.title} (${m.release_date?.substring(0, 4) || ''})</li>`).join('')}</ul></div>` : ''}
+
+  ${tracks.length ? `<div class="card"><h3>🎵 Popular Tracks</h3><ul>${tracks.map(t => `<li><a href="${t.url}" target="_blank">${t.name}</a> – ${t.artists}</li>`).join('')}</ul></div>` : ''}
+`;
+
 
         setTimeout(() => result.classList.add('visible'), 100);
 

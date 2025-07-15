@@ -28,20 +28,22 @@ router.get('/search', isAuth, async (req, res) => {
     // ✅ Convert ISO code to full country name
     const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode);
 
-    // 🌄 Unsplash city image
-    let image = '';
-    try {
-      const unsplashRes = await axios.get('https://api.unsplash.com/photos/random', {
-        params: {
-          query: `${weather.name} city`,
-          orientation: 'landscape',
-          client_id: process.env.UNSPLASH_ACCESS_KEY
-        }
-      });
-      image = unsplashRes.data.urls.regular;
-    } catch (err) {
-      console.warn('Unsplash failed:', err.message);
+    // 🌄 Unsplash city images
+let images = [];
+try {
+  const unsplashRes = await axios.get('https://api.unsplash.com/search/photos', {
+    params: {
+      query: `${weather.name} city`,
+      orientation: 'landscape',
+      per_page: 5,
+      client_id: process.env.UNSPLASH_ACCESS_KEY
     }
+  });
+  images = unsplashRes.data.results.map(img => img.urls.regular);
+} catch (err) {
+  console.warn('Unsplash failed:', err.message);
+}
+
 
     // 🎬 TMDB movies by release region
     let movies = [];
@@ -104,15 +106,16 @@ router.get('/search', isAuth, async (req, res) => {
 
     // Save user search history
     await User.findByIdAndUpdate(req.user._id, { $push: { history: q } });
+    
+res.json({
+  weather,
+  wiki,
+  movies,
+  tracks,
+  images,
+  history: req.user.history.concat(q).slice(-5).reverse()
+});
 
-    res.json({
-      weather,
-      wiki,
-      movies,
-      tracks,
-      image,
-      history: req.user.history.concat(q).slice(-5).reverse()
-    });
 
   } catch (err) {
     console.error('Search route failed:', err.message);
