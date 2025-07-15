@@ -15,6 +15,7 @@ router.get('/search', isAuth, async (req, res) => {
   const wikiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`;
 
   try {
+    // Fetch weather and wiki
     const [weatherRes, wikiRes] = await Promise.all([
       axios.get(weatherURL),
       axios.get(wikiURL)
@@ -23,6 +24,9 @@ router.get('/search', isAuth, async (req, res) => {
     const weather = weatherRes.data;
     const wiki = wikiRes.data;
     const countryCode = weather.sys.country;
+
+    // ✅ Convert ISO code to full country name
+    const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode);
 
     // 🌄 Unsplash city image
     let image = '';
@@ -45,10 +49,10 @@ router.get('/search', isAuth, async (req, res) => {
       const movieRes = await axios.get('https://api.themoviedb.org/3/discover/movie', {
         params: {
           api_key: process.env.TMDB_API_KEY,
-          sort_by: 'popularity.desc',
+          sort_by: 'release_date.desc',
           with_release_type: 3,
           'release_date.lte': new Date().toISOString().split('T')[0],
-          with_release_region: countryCode
+          region: countryCode
         }
       });
       movies = movieRes.data.results.slice(0, 5);
@@ -56,19 +60,33 @@ router.get('/search', isAuth, async (req, res) => {
       console.warn('TMDB failed:', err.message);
     }
 
-    // 🎵 Spotify: Search for "Top 50 - {countryCode}" playlist dynamically
+    // 🎵 Spotify Top 50 by country name (with fallback to Global)
     let tracks = [];
     try {
       const playlistSearch = await axios.get('https://api.spotify.com/v1/search', {
         headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
         params: {
-          q: `Top 50 - ${countryCode}`,
+          q: `Top 50 - ${countryName}`,
           type: 'playlist',
           limit: 1
         }
       });
 
-      const playlist = playlistSearch.data.playlists.items[0];
+      let playlist = playlistSearch.data.playlists.items[0];
+
+      if (!playlist) {
+        // Fallback to Global
+        const fallback = await axios.get('https://api.spotify.com/v1/search', {
+          headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` },
+          params: {
+            q: `Top 50 - Global`,
+            type: 'playlist',
+            limit: 1
+          }
+        });
+        playlist = fallback.data.playlists.items[0];
+      }
+
       if (playlist) {
         const playlistTracks = await axios.get(`https://api.spotify.com/v1/playlists/${playlist.id}`, {
           headers: { Authorization: `Bearer ${process.env.SPOTIFY_TOKEN}` }
@@ -84,7 +102,7 @@ router.get('/search', isAuth, async (req, res) => {
       console.warn('Spotify playlist fetch failed:', err.message);
     }
 
-    // Save search to user history
+    // Save user search history
     await User.findByIdAndUpdate(req.user._id, { $push: { history: q } });
 
     res.json({
