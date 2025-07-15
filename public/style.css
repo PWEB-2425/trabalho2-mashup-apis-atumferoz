@@ -11,6 +11,8 @@
 body {
   font-family: 'Segoe UI', sans-serif;
   padding: 2em;
+  padding-top: 80px;
+  padding-bottom: 60px;
   max-width: 700px;
   margin: auto;
   background-color: var(--bg);
@@ -43,7 +45,9 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
+
 
 .card {
   background: #f0f8ff;
@@ -117,9 +121,13 @@ body::before {
 }
 
 .welcome {
-  font-size: 2em;
-  font-weight: bold;
+  color: #222; /* darker text for light mode */
 }
+
+body:not(.dark) #historyList a {
+  color: #007BFF; /* bright blue for visibility */
+}
+
 
 
 .image-carousel {
@@ -165,5 +173,61 @@ a[href="/logout"] {
 }
 
 a[href="/logout"]:hover {
+  text-decoration: underline;
+}
+
+
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em 2em;
+  z-index: 1000;
+}
+
+.main-header h1 {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.main-header nav a {
+  margin-left: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  color: #007BFF;
+}
+
+.main-header nav a:hover {
+  text-decoration: underline;
+}
+
+
+.main-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  padding: 1em;
+  font-size: 0.9em;
+  z-index: 1000;
+}
+
+
+nav a.logout {
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+nav a.logout:hover {
   text-decoration: underline;
 }
